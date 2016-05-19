@@ -43,7 +43,10 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
         sortees = new ArrayList<Sortee>();
         int[] numbers = {1,2,3};
         for (int x : numbers) {
-            sortees.add(new Sortee(BitmapFactory.decodeResource(getResources(), R.drawable.droid_1), 50*x, 50*x));
+            sortees.add(new Sortee(BitmapFactory.decodeResource(getResources(), R.drawable.droid_walk),
+                    50*x, 50*x,  // initial position
+                    20, 20,  // width and height of sprite
+                    5, 2));  // FPS and number of frames in the animation
         }
         //sortees.add(sortee);
         //sortees.add(sortee2);
@@ -137,7 +140,9 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
     public void update() {
 
         // will check if sortee has been unsorted for too long
-
+        for ( Sortee sortee: sortees) {
+            sortee.update(System.currentTimeMillis());
+        }
     }
 
 
