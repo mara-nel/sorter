@@ -1,4 +1,4 @@
-package com.learnknots.wesslnelson.droidz.model;
+package com.learnknots.wesslnelson.Sorter.model;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -9,14 +9,14 @@ import android.graphics.Canvas;
  *
  * following tutorial by javacodegeeks.com
  */
-public class Droid {
+public class Sortee {
 
     private Bitmap bitmap; // the actual bitmap
     private int x; // the X coordinate
     private int y; // the y coordinate
     private boolean touched; // true if droid is touched/picked up
 
-    public Droid(Bitmap bitmap, int x, int y) {
+    public Sortee(Bitmap bitmap, int x, int y) {
         this.bitmap  = bitmap;
         this.x = x;
         this.y = y;
@@ -57,7 +57,7 @@ public class Droid {
     public void handleActionDown(int eventX, int eventY) {
         if (eventX >= (x - bitmap.getWidth() / 2) && (eventX <= (x + bitmap.getWidth()/2))) {
             if (eventY >= (y - bitmap.getHeight() / 2) && (y <= (y + bitmap.getHeight() / 2))) {
-                // droid touched
+                // sortee touched
                 setTouched(true);
             } else {
                 setTouched(false);

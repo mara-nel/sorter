@@ -1,4 +1,4 @@
-package com.learnknots.wesslnelson.droidz;
+package com.learnknots.wesslnelson.Sorter;
 
 /**
  * Created by wesslnelson on 5/18/16.
@@ -8,6 +8,7 @@ package com.learnknots.wesslnelson.droidz;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -16,14 +17,19 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import com.learnknots.wesslnelson.droidz.model.Droid;
+import com.learnknots.wesslnelson.Sorter.model.Sortee;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback {
 
     private static final String TAG = MainGamePanel.class.getSimpleName();
 
     private MainThread thread;
-    private Droid droid;
+    private Sortee sortee;
+    private Sortee sortee2;
+    private List<Sortee> sortees;
 
     public MainGamePanel(Context context) {
         super(context);
@@ -31,7 +37,16 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
         getHolder().addCallback(this);
 
         // create droid and load bitmap
-        droid = new Droid(BitmapFactory.decodeResource(getResources(), R.drawable.droid_1), 50, 50);
+        //sortee = new Sortee(BitmapFactory.decodeResource(getResources(), R.drawable.droid_1), 50, 50);
+        //sortee2 =  new Sortee(BitmapFactory.decodeResource(getResources(), R.drawable.droid_1), 100, 100);
+
+        sortees = new ArrayList<Sortee>();
+        int[] numbers = {1,2,3};
+        for (int x : numbers) {
+            sortees.add(new Sortee(BitmapFactory.decodeResource(getResources(), R.drawable.droid_1), 50*x, 50*x));
+        }
+        //sortees.add(sortee);
+        //sortees.add(sortee2);
 
         // create the main game loop thread
         thread = new MainThread(getHolder(), this);
@@ -69,7 +84,10 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
     public boolean onTouchEvent(MotionEvent event) {
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             // delegating event handling to the droid
-            droid.handleActionDown((int)event.getX(), (int)event.getY());
+            //sortee.handleActionDown((int)event.getX(), (int)event.getY());
+            for (Sortee sortee:sortees) {
+                sortee.handleActionDown((int)event.getX(), (int)event.getY());
+            }
 
             // check if in lower part of screen to see if exit
             if (event.getY() > getHeight() - 50) {
@@ -81,25 +99,45 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
         }
         if (event.getAction() == MotionEvent.ACTION_MOVE) {
             // the gestures
-            if (droid.isTouched()) {
-                // the droid was picked up and is being dragged
-                droid.setX((int)event.getX());
-                droid.setY((int)event.getY());
+            for (Sortee sortee:sortees) {
+                if (sortee.isTouched()) {
+                    // the droid was picked up and is being dragged
+                    sortee.setX((int) event.getX());
+                    sortee.setY((int) event.getY());
+                }
             }
         } if (event.getAction() == MotionEvent.ACTION_UP) {
             // touch was released
-            if (droid.isTouched()) {
-                droid.setTouched(false);
+            for (Sortee sortee:sortees) {
+                if (sortee.isTouched()) {
+                    sortee.setTouched(false);
+                }
             }
         }
         return true;
     }
 
-    @Override
-    protected void onDraw(Canvas canvas) {
+
+    protected void render(Canvas canvas) {
         // fills the canvas with black
         canvas.drawColor(Color.BLACK);
-        droid.draw(canvas);
+        //sortee.draw(canvas);
+        //sortee2.draw(canvas);
+        // draw all sortees in list
+        for( Sortee sortee: sortees) {
+            sortee.draw(canvas);
+        }
+    }
+
+    /**
+     * This is the game update method. It iterates through all the objects
+     * and calls their update method if they have one or calls specific
+     * engine's update method.
+     */
+    public void update() {
+
+        // will check if sortee has been unsorted for too long
+
     }
 
 

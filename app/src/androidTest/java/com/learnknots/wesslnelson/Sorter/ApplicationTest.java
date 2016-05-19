@@ -1,4 +1,4 @@
-package com.learnknots.wesslnelson.droidz;
+package com.learnknots.wesslnelson.Sorter;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;
