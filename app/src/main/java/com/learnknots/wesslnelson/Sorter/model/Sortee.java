@@ -26,7 +26,9 @@ public class Sortee {
     private int y; // the y coordinate
     private boolean touched; // true if droid is touched/picked up
 
-    public Sortee(Bitmap bitmap, int x, int y, int width, int height, int fps, int frameCount) {
+    private int safeZone; // y coordinate which for anthing below is safe
+
+    public Sortee(Bitmap bitmap, int x, int y, int width, int height, int fps, int frameCount, int safeZone) {
         this.bitmap = bitmap;
         this.x = x;
         this.y = y;
@@ -37,6 +39,7 @@ public class Sortee {
         sourceRect = new Rect(0, 0, spriteWidth, spriteHeight);
         framePeriod = 1000 / fps;
         frameTicker = 0l;
+        this.safeZone = safeZone;
     }
 
     public Bitmap getBitmap() {
@@ -109,6 +112,20 @@ public class Sortee {
         this.spriteHeight = spriteHeight;
     }
 
+    public int getSafeZone() {
+        return safeZone;
+    }
+    public void setSafeZone( int safeZone) {
+        this.safeZone = safeZone;
+    }
+
+    public boolean isSafe() {
+        if (getY() > getSafeZone()) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
 
     public void update(long gameTime) {

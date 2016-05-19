@@ -12,6 +12,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.Paint;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -21,10 +22,14 @@ import com.learnknots.wesslnelson.Sorter.model.Sortee;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.StringTokenizer;
 
 public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback {
 
     private static final String TAG = MainGamePanel.class.getSimpleName();
+    private static final int SAFE_ZONE = 600;
+
+    private String safeZoneTest;
 
     private MainThread thread;
     private Sortee sortee;
@@ -46,7 +51,8 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
             sortees.add(new Sortee(BitmapFactory.decodeResource(getResources(), R.drawable.droid_walk),
                     50*x, 50*x,  // initial position
                     20, 20,  // width and height of sprite
-                    5, 2));  // FPS and number of frames in the animation
+                    5, 2,    // FPS and number of frames in the animation
+                    SAFE_ZONE));   // Where the safe zone starts
         }
         //sortees.add(sortee);
         //sortees.add(sortee2);
@@ -56,6 +62,8 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
 
         // make the GamePanel focusable so it can handle events
         setFocusable(true);
+
+        safeZoneTest = "no one is in it";
     }
 
     @Override
@@ -124,11 +132,30 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
     protected void render(Canvas canvas) {
         // fills the canvas with black
         canvas.drawColor(Color.BLACK);
+        drawSafeLine(canvas, SAFE_ZONE);
         //sortee.draw(canvas);
         //sortee2.draw(canvas);
         // draw all sortees in list
         for( Sortee sortee: sortees) {
             sortee.draw(canvas);
+        }
+        displayTest(canvas, safeZoneTest);
+
+    }
+
+    private void drawSafeLine(Canvas canvas, int safeZone) {
+        if (canvas != null) {
+            Paint paint = new Paint();
+            paint.setARGB(255, 0, 255, 0);
+            canvas.drawLine(0, 600, canvas.getWidth(), safeZone, paint);
+        }
+    }
+
+    private void displayTest(Canvas canvas, String text) {
+        if (canvas != null && text != null) {
+            Paint paint = new Paint();
+            paint.setARGB(255, 255, 255, 255);
+            canvas.drawText(text, this.getWidth() - 150, 20, paint);
         }
     }
 
@@ -139,9 +166,12 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
      */
     public void update() {
 
-        // will check if sortee has been unsorted for too long
+        // will eventually check if sortee has been unsorted for too long
         for ( Sortee sortee: sortees) {
             sortee.update(System.currentTimeMillis());
+            if (sortee.isSafe()) {
+                safeZoneTest = "A sortee has been sorted";
+            }
         }
     }
 
