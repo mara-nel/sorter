@@ -7,10 +7,12 @@ import android.graphics.Rect;
 
 /**
  * Created by wesslnelson on 5/18/16.
- *
- * following tutorial by javacodegeeks.com
  */
 public class Sortee {
+
+    private final static int LIFE_SPAN = 5000; // # of ms until death
+    public static final int STATE_ALIVE     = 0;    // sortee is younger than LIFE_SPAN
+    public static final int STATE_DEAD      = 1;    // sortee is too old
 
     private Bitmap bitmap;      // the animation sequence
     private Rect sourceRect;    // the rectangle to be drawn from the animation bitmap
@@ -18,17 +20,21 @@ public class Sortee {
     private int currentFrame;   // the current frame
     private long frameTicker;   // the time of the last frame update
     private int framePeriod;    // milliseconds between each frame (1000/fps)
+    private long birth;          // when a sortee is created
+    private int lifeState;          // whether or not a sortee is alive
 
     private int spriteWidth;    // the width of the sprite to calculate the cut out rectangle
     private int spriteHeight;   // the height of the sprite
 
     private int x; // the X coordinate
     private int y; // the y coordinate
-    private boolean touched; // true if droid is touched/picked up
+    private boolean touched; // true if sortee is touched/picked up
 
-    private int safeZone; // y coordinate which for anthing below is safe
+    private int safeZone; // y coordinate for which anything below is safe
 
-    public Sortee(Bitmap bitmap, int x, int y, int width, int height, int fps, int frameCount, int safeZone) {
+    private Explosion explosion; // if dies outside of safezone then it explodes
+
+    public Sortee(Bitmap bitmap, int x, int y, int width, int height, int fps, int frameCount, int safeZone, long startTime) {
         this.bitmap = bitmap;
         this.x = x;
         this.y = y;
@@ -40,6 +46,8 @@ public class Sortee {
         framePeriod = 1000 / fps;
         frameTicker = 0l;
         this.safeZone = safeZone;
+        this.birth = startTime;
+        this.lifeState = STATE_ALIVE;
     }
 
     public Bitmap getBitmap() {
@@ -127,25 +135,55 @@ public class Sortee {
         }
     }
 
+    public int getLifeState() {
+        return lifeState;
+    }
+
+    public void setLifeState(int state) {
+        this.lifeState = state;
+    }
+
+    // helper methods -------------------------
+    public boolean isAlive() {
+        return this.lifeState == STATE_ALIVE;
+    }
+    public boolean isDead() {
+        return this.lifeState == STATE_DEAD;
+    }
 
     public void update(long gameTime) {
-        if (gameTime > frameTicker + framePeriod) {
-            frameTicker = gameTime;
-            // increment the frame
-            currentFrame++;
-            if (currentFrame >= frameNr) {
-                currentFrame = 0;
+        if (isAlive() || isSafe()) {
+            if (gameTime > frameTicker + framePeriod) {
+                frameTicker = gameTime;
+                // increment the frame
+                currentFrame++;
+                if (currentFrame >= frameNr) {
+                    currentFrame = 0;
+                }
             }
+            if (gameTime - birth >= LIFE_SPAN) {
+                setLifeState(STATE_DEAD);
+            }
+
+
+            // define the rectangle to cut out sprite
+            this.sourceRect.left = currentFrame * spriteWidth;
+            this.sourceRect.right = this.sourceRect.left + spriteWidth;
+        } else {
+            runExplosion();
         }
-        // define the rectangle to cut out sprite
-        this.sourceRect.left = currentFrame * spriteWidth;
-        this.sourceRect.right = this.sourceRect.left + spriteWidth;
     }
 
     public void draw(Canvas canvas) {
         // where to draw the sprite
-        Rect destRect = new Rect(getX(), getY(), getX() + spriteWidth, getY() + spriteHeight);
-        canvas.drawBitmap(bitmap, sourceRect, destRect, null);
+        if (isAlive() || isSafe()) {
+            Rect destRect = new Rect(getX(), getY(), getX() + spriteWidth, getY() + spriteHeight);
+            canvas.drawBitmap(bitmap, sourceRect, destRect, null);
+        } else if (explosion != null) {
+            explosion.setX(getX());
+            explosion.setY(getY());
+            explosion.draw(canvas);
+        }
     }
 
     public void handleActionDown(int eventX, int eventY) {
@@ -160,4 +198,13 @@ public class Sortee {
             setTouched(false);
         }
     }
+
+    public void runExplosion() {
+        if (explosion == null) {
+            explosion = new Explosion(200, getX(), getY());
+        } else {
+            explosion.update();
+        }
+    }
+
 }

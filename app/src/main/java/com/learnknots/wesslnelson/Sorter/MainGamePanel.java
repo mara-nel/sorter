@@ -18,6 +18,7 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
+import com.learnknots.wesslnelson.Sorter.model.Explosion;
 import com.learnknots.wesslnelson.Sorter.model.Sortee;
 
 import java.util.ArrayList;
@@ -48,11 +49,11 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
         sortees = new ArrayList<Sortee>();
         int[] numbers = {1,2,3};
         for (int x : numbers) {
-            sortees.add(new Sortee(BitmapFactory.decodeResource(getResources(), R.drawable.droid_walk),
+            sortees.add(new Sortee(BitmapFactory.decodeResource(getResources(), R.drawable.dog_both),
                     50*x, 50*x,  // initial position
-                    20, 20,  // width and height of sprite
+                    25, 20,  // width and height of sprite
                     5, 2,    // FPS and number of frames in the animation
-                    SAFE_ZONE));   // Where the safe zone starts
+                    SAFE_ZONE, System.currentTimeMillis()));   // Where the safe zone starts and when sortee created
         }
         //sortees.add(sortee);
         //sortees.add(sortee2);
@@ -138,6 +139,7 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
         // draw all sortees in list
         for( Sortee sortee: sortees) {
             sortee.draw(canvas);
+
         }
         displayTest(canvas, safeZoneTest);
 
