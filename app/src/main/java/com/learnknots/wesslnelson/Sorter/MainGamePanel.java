@@ -18,10 +18,10 @@ import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
-import com.learnknots.wesslnelson.Sorter.model.Explosion;
 import com.learnknots.wesslnelson.Sorter.model.Sortee;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.StringTokenizer;
 
@@ -29,13 +29,17 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
 
     private static final String TAG = MainGamePanel.class.getSimpleName();
     private static final int SAFE_ZONE = 600;
+    private static final int NEW_SORTEE_TIME = 5000;
 
+    private long newSorteeTicker = 0;
     private String safeZoneTest;
+    private String numberOfSortees;
 
     private MainThread thread;
     private Sortee sortee;
     private Sortee sortee2;
     private List<Sortee> sortees;
+
 
     public MainGamePanel(Context context) {
         super(context);
@@ -54,7 +58,14 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
                     25, 20,  // width and height of sprite
                     5, 2,    // FPS and number of frames in the animation
                     SAFE_ZONE, System.currentTimeMillis()));   // Where the safe zone starts and when sortee created
+            sortees.add(new Sortee(BitmapFactory.decodeResource(getResources(), R.drawable.dude_waving),
+                    120+50*x, 50*x,  // initial position
+                    64, 64,  // width and height of sprite
+                    5, 2,    // FPS and number of frames in the animation
+                    SAFE_ZONE, System.currentTimeMillis()));
+
         }
+        numberOfSortees = Integer.toString(sortees.size());
         //sortees.add(sortee);
         //sortees.add(sortee2);
 
@@ -132,7 +143,7 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
 
     protected void render(Canvas canvas) {
         // fills the canvas with black
-        canvas.drawColor(Color.BLACK);
+        canvas.drawColor(Color.CYAN);
         drawSafeLine(canvas, SAFE_ZONE);
 
         //sortee.draw(canvas);
@@ -142,26 +153,29 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
         for( Sortee sortee: sortees) {
             sortee.draw(canvas);
         }
-        displayTest(canvas, safeZoneTest);
+        displayText(canvas, safeZoneTest, 20);
+        displayText(canvas, numberOfSortees, 40);
 
     }
 
     private void drawSafeLine(Canvas canvas, int safeZone) {
         if (canvas != null) {
             Paint paint = new Paint();
-            paint.setARGB(255, 0, 255, 0);
+            paint.setARGB(255, 0, 50, 0);
             //canvas.drawLine(600, 0, canvas.getWidth(), safeZone, paint);
             canvas.drawLine(safeZone, 0, safeZone, canvas.getHeight(), paint);
         }
     }
 
-    private void displayTest(Canvas canvas, String text) {
+
+    private void displayText(Canvas canvas, String text, int yHeight) {
         if (canvas != null && text != null) {
             Paint paint = new Paint();
-            paint.setARGB(255, 255, 255, 255);
-            canvas.drawText(text, this.getWidth() - 150, 20, paint);
+            paint.setARGB(255, 0, 0, 0);
+            canvas.drawText(text, this.getWidth() - 150, yHeight, paint);
         }
     }
+
 
     /**
      * This is the game update method. It iterates through all the objects
@@ -171,13 +185,37 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
     public void update() {
 
         // will eventually check if sortee has been unsorted for too long
+        List<Sortee> toRemove = new ArrayList<Sortee>();
         for ( Sortee sortee: sortees) {
             sortee.update(System.currentTimeMillis());
             if (sortee.isSafe()) {
                 safeZoneTest = "A sortee has been sorted";
             }
+            if (sortee.isDead()) {
+                toRemove.add(sortee);
+            }
         }
+        sortees.removeAll(toRemove);
+        numberOfSortees = Integer.toString(sortees.size());
+
+        randomNewSortee(System.currentTimeMillis());
+
     }
 
 
+    public void randomNewSortee(Long time) {
+        if (time > newSorteeTicker + NEW_SORTEE_TIME) {
+            newSorteeTicker = time;
+            sortees.add( new Sortee(BitmapFactory.decodeResource(getResources(), R.drawable.dog_both),
+                    rndInt(0,500), rndInt(0,400),  // initial position
+                    25, 20,  // width and height of sprite
+                    5, 2,    // FPS and number of frames in the animation
+                    SAFE_ZONE, System.currentTimeMillis()));   // Where the safe zone starts and when sortee created
+        }
+    }
+
+    // Return an integer that ranges from min inclusive to max inclusive.
+    static int rndInt(int min, int max) {
+        return (int) (min + Math.random() * (max - min + 1));
+    }
 }

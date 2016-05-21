@@ -13,6 +13,10 @@ import com.learnknots.wesslnelson.Sorter.R;
 
 /**
  * Created by wesslnelson on 5/18/16.
+ *
+ * age is used to keep track of when a sortee should fade or explode
+ * life of a sortee is used to know if stuff is still happening or is all done
+ *
  */
 public class Sortee {
 
@@ -29,10 +33,12 @@ public class Sortee {
 
     private static final int LIFE_SPAN_UNSAFE   = 5000; // # of ms sortee survives while unsafe
     private static final int LIFE_SPAN_SAFE     = 2000; // # of ms sortee survives in safe zone
-    public static final int STATE_ALIVE         = 0;    // sortee is younger than LIFE_SPAN
-    public static final int STATE_DEAD          = 1;    // sortee is too old
+    public static final int STATE_YOUNG         = 0;    // sortee is younger than LIFE_SPAN
+    public static final int STATE_OLD           = 1;    // sortee is too old
     public static final int STATE_SAFE          = 0;    // sortee is in a safe zone
     public static final int STATE_UNSAFE        = 1;    // sortee is not safe
+    public static final int STATE_ALIVE         = 0;    // sortee is alive
+    public static final int STATE_DEAD          = 1;    // sortee is dead
 
     private Bitmap bitmap;           // the animation sequence
     private Rect sourceRect;         // the rectangle to be drawn from the animation bitmap
@@ -42,8 +48,9 @@ public class Sortee {
     private int framePeriod;         // milliseconds between each frame (1000/fps)
     private long timeEnteringUnsafe; // when a sortee enters the unsafezone
     private long timeEnteringSafe;   // when a sortee enters the safezone
-    private int lifeState;           // whether or not a sortee is alive
+    private int ageState;            // whether or not a sortee is young or old
     private int safeState;           // whether or not a sortee is in a safezone
+    private int lifeState;           // whether or not a sortee is all done
 
     private int spriteWidth;    // the width of the sprite to calculate the cut out rectangle
     private int spriteHeight;   // the height of the sprite
@@ -69,9 +76,10 @@ public class Sortee {
         frameTicker = 0l;
         this.safeZone = safeZone;
         this.timeEnteringUnsafe = startTime;
-        this.lifeState = STATE_ALIVE;
+        this.ageState = STATE_YOUNG;
         this.safeState = STATE_UNSAFE;
         this.timeEnteringSafe = -1;
+        this.lifeState = STATE_ALIVE;
     }
 
     public Bitmap getBitmap() {
@@ -165,11 +173,11 @@ public class Sortee {
         this.timeEnteringUnsafe = time;
     }
 
-    public int getLifeState() {
-        return lifeState;
+    public int getAgeState() {
+        return ageState;
     }
-    public void setLifeState(int state) {
-        this.lifeState = state;
+    public void setAgeState(int state) {
+        this.ageState = state;
     }
 
     public int getSafeState() {
@@ -179,12 +187,20 @@ public class Sortee {
         this.safeState = state;
     }
 
-    // helper methods -------------------------
-    public boolean isAlive() {
-        return this.lifeState == STATE_ALIVE;
+    public int getLifeState() {
+        return lifeState;
     }
-    public boolean isDead() {
-        return this.lifeState == STATE_DEAD;
+    public void setLifeState(int state) {
+        this.lifeState = state;
+    }
+
+
+    // helper methods -------------------------
+    public boolean isYoung() {
+        return this.ageState == STATE_YOUNG;
+    }
+    public boolean isOld() {
+        return this.ageState == STATE_OLD;
     }
     public boolean isSafe() {
         return this.safeState == STATE_SAFE;
@@ -192,6 +208,13 @@ public class Sortee {
     public boolean isUnsafe() {
         return this.safeState == STATE_UNSAFE;
     }
+    public boolean isAlive() {
+        return this.lifeState == STATE_ALIVE;
+    }
+    public boolean isDead() {
+        return this.lifeState == STATE_DEAD;
+    }
+
     public boolean tooOldForSafe(Long gameTime) {
         return (gameTime - this.timeEnteringSafe >= LIFE_SPAN_SAFE);
     }
@@ -201,55 +224,56 @@ public class Sortee {
 
     public void update(long gameTime) {
         if (isAlive()) {
-            // handles animating the sprite
-            if (gameTime > frameTicker + framePeriod) {
-                frameTicker = gameTime;
-                // increment the frame
-                currentFrame++;
-                if (currentFrame >= frameNr) {
-                    currentFrame = 0;
+            if (isYoung()) {
+                // handles animating the sprite
+                if (gameTime > frameTicker + framePeriod) {
+                    frameTicker = gameTime;
+                    // increment the frame
+                    currentFrame++;
+                    if (currentFrame >= frameNr) {
+                        currentFrame = 0;
+                    }
                 }
-            }
-            // define the rectangle to cut out sprite
-            this.sourceRect.left = currentFrame * spriteWidth;
-            this.sourceRect.right = this.sourceRect.left + spriteWidth;
+                // define the rectangle to cut out sprite
+                this.sourceRect.left = currentFrame * spriteWidth;
+                this.sourceRect.right = this.sourceRect.left + spriteWidth;
 
-            // checks if in safe zone
-            if (isUnsafe()) {
-                if (getX() > getSafeZone()) {
-                    setTimeEnteringSafe(gameTime);
-                    setSafeState(STATE_SAFE);
+                // checks if in safe zone
+                if (isUnsafe()) {
+                    if (getX() > getSafeZone()) {
+                        setTimeEnteringSafe(gameTime);
+                        setSafeState(STATE_SAFE);
+                    }
+                } else if (isSafe()) {
+                    if (getX() <= getSafeZone()) {
+                        setTimeEnteringUnsafe(gameTime);
+                        setSafeState(STATE_UNSAFE);
+                    }
                 }
-            }  else if (isSafe()) {
-                if (getX() <= getSafeZone()) {
-                    setTimeEnteringUnsafe(gameTime);
-                    setSafeState(STATE_UNSAFE);
-                }
-            }
 
-            // checks if too old
-            if (isUnsafe()) {
-                if (tooOldForUnsafe(gameTime)) {
-                    setLifeState(STATE_DEAD);
+                // checks if too old
+                if (isUnsafe()) {
+                    if (tooOldForUnsafe(gameTime)) {
+                        setAgeState(STATE_OLD);
+                    }
+                } else if (isSafe()) {
+                    if (tooOldForSafe(gameTime)) {
+                        setAgeState(STATE_OLD);
+                    }
                 }
+
+
+            } else if (isUnsafe()) {
+                runExplosion();
             } else if (isSafe()) {
-                if (tooOldForSafe(gameTime)) {
-                    setLifeState(STATE_DEAD);
-                }
+                fadeOut();
             }
-
-
-        } else if (isUnsafe()) {
-            runExplosion();
-        } else if (isSafe()) {
-            fadeOut();
         }
-
     }
 
     public void draw(Canvas canvas) {
         // where to draw the sprite
-        if (isAlive()) {
+        if (isYoung()) {
             Rect destRect = new Rect(getX(), getY(), getX() + spriteWidth, getY() + spriteHeight);
             canvas.drawBitmap(bitmap, sourceRect, destRect, null);
 
@@ -281,14 +305,20 @@ public class Sortee {
         if (explosion == null) {
             explosion = new Explosion(200, getX(), getY());
         } else {
-            explosion.update();
+            if (explosion.isAlive()) {
+                explosion.update();
+            } else if (explosion.isDead()) {
+                setLifeState(STATE_DEAD);
+            }
         }
     }
 
     public void fadeOut() {
-        if (currentAlpha >10) {
+        if (currentAlpha >=20) {
             alphaPaint.setAlpha(currentAlpha);
             currentAlpha -= ALPHA_STEP;
+        } else {
+            setLifeState(STATE_DEAD);
         }
 
     }
