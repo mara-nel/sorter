@@ -134,12 +134,13 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
         // fills the canvas with black
         canvas.drawColor(Color.BLACK);
         drawSafeLine(canvas, SAFE_ZONE);
+
         //sortee.draw(canvas);
         //sortee2.draw(canvas);
+
         // draw all sortees in list
         for( Sortee sortee: sortees) {
             sortee.draw(canvas);
-
         }
         displayTest(canvas, safeZoneTest);
 
