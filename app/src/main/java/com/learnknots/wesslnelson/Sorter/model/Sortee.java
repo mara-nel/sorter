@@ -30,7 +30,7 @@ public class Sortee {
     private int y; // the y coordinate
     private boolean touched; // true if sortee is touched/picked up
 
-    private int safeZone; // y coordinate for which anything below is safe
+    private int safeZone; // x coordinate for which anything greater than is safe
 
     private Explosion explosion; // if dies outside of safezone then it explodes
 
@@ -128,7 +128,7 @@ public class Sortee {
     }
 
     public boolean isSafe() {
-        if (getY() > getSafeZone()) {
+        if (getX() > getSafeZone()) {
             return true;
         } else {
             return false;

@@ -149,7 +149,8 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
         if (canvas != null) {
             Paint paint = new Paint();
             paint.setARGB(255, 0, 255, 0);
-            canvas.drawLine(0, 600, canvas.getWidth(), safeZone, paint);
+            //canvas.drawLine(600, 0, canvas.getWidth(), safeZone, paint);
+            canvas.drawLine(safeZone, 0, safeZone, canvas.getHeight(), paint);
         }
     }
 
