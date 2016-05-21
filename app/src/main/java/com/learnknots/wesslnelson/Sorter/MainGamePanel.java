@@ -8,6 +8,7 @@ package com.learnknots.wesslnelson.Sorter;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
@@ -27,17 +28,18 @@ import java.util.StringTokenizer;
 
 public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback {
 
-    private static final String TAG = MainGamePanel.class.getSimpleName();
-    private static final int SAFE_ZONE = 600;
-    private static final int NEW_SORTEE_TIME = 5000;
+    Resources res = getResources();
+
+    private static final    String TAG = MainGamePanel.class.getSimpleName();
+    private final int       SAFE_ZONE_WIDTH = res.getInteger(R.integer.safeZone);
+    private final int       NEW_SORTEE_TIME = res.getInteger(R.integer.timeBetweenRespawn);
 
     private long newSorteeTicker = 0;
     private String safeZoneTest;
     private String numberOfSortees;
+    private int nextRespawn;
 
     private MainThread thread;
-    private Sortee sortee;
-    private Sortee sortee2;
     private List<Sortee> sortees;
 
 
@@ -51,23 +53,8 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
         //sortee2 =  new Sortee(BitmapFactory.decodeResource(getResources(), R.drawable.droid_1), 100, 100);
 
         sortees = new ArrayList<Sortee>();
-        int[] numbers = {1,2,3};
-        for (int x : numbers) {
-            sortees.add(new Sortee(BitmapFactory.decodeResource(getResources(), R.drawable.dog_both),
-                    50*x, 50*x,  // initial position
-                    25, 20,  // width and height of sprite
-                    5, 2,    // FPS and number of frames in the animation
-                    SAFE_ZONE, System.currentTimeMillis()));   // Where the safe zone starts and when sortee created
-            sortees.add(new Sortee(BitmapFactory.decodeResource(getResources(), R.drawable.dude_waving),
-                    120+50*x, 50*x,  // initial position
-                    64, 64,  // width and height of sprite
-                    5, 2,    // FPS and number of frames in the animation
-                    SAFE_ZONE, System.currentTimeMillis()));
-
-        }
         numberOfSortees = Integer.toString(sortees.size());
-        //sortees.add(sortee);
-        //sortees.add(sortee2);
+
 
         // create the main game loop thread
         thread = new MainThread(getHolder(), this);
@@ -144,7 +131,7 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
     protected void render(Canvas canvas) {
         // fills the canvas with black
         canvas.drawColor(Color.CYAN);
-        drawSafeLine(canvas, SAFE_ZONE);
+        drawSafeLine(canvas, this.getWidth() - SAFE_ZONE_WIDTH);
 
         //sortee.draw(canvas);
         //sortee2.draw(canvas);
@@ -204,13 +191,14 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
 
 
     public void randomNewSortee(Long time) {
-        if (time > newSorteeTicker + NEW_SORTEE_TIME) {
+        nextRespawn = NEW_SORTEE_TIME - rndInt(0,1500);
+        if (time > newSorteeTicker + nextRespawn) {
             newSorteeTicker = time;
             sortees.add( new Sortee(BitmapFactory.decodeResource(getResources(), R.drawable.dog_both),
                     rndInt(0,500), rndInt(0,400),  // initial position
                     25, 20,  // width and height of sprite
                     5, 2,    // FPS and number of frames in the animation
-                    SAFE_ZONE, System.currentTimeMillis()));   // Where the safe zone starts and when sortee created
+                    this.getRight() - SAFE_ZONE_WIDTH, System.currentTimeMillis()));   // Where the safe zone starts and when sortee created
         }
     }
 

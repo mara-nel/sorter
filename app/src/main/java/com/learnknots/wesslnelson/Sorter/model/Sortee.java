@@ -22,7 +22,7 @@ public class Sortee {
 
     private static final String TAG = Sortee.class.getSimpleName();
 
-    private static final int FADE_MILLISECONDS = 3000;//R.integer.fade_milliseconds;
+    private static final int FADE_MILLISECONDS = 1500;//R.integer.fade_milliseconds;
     private static final int FADE_STEP = 120;//R.integer.fade_step;
 
     // Calculate our alpha step from our fade parameters
@@ -31,8 +31,8 @@ public class Sortee {
     private int currentAlpha = 255;
 
 
-    private static final int LIFE_SPAN_UNSAFE   = 5000; // # of ms sortee survives while unsafe
-    private static final int LIFE_SPAN_SAFE     = 2000; // # of ms sortee survives in safe zone
+    private static final int LIFE_SPAN_UNSAFE   = 3500; // # of ms sortee survives while unsafe
+    private static final int LIFE_SPAN_SAFE     = 1500; // # of ms sortee survives in safe zone
     public static final int STATE_YOUNG         = 0;    // sortee is younger than LIFE_SPAN
     public static final int STATE_OLD           = 1;    // sortee is too old
     public static final int STATE_SAFE          = 0;    // sortee is in a safe zone
