@@ -13,7 +13,7 @@ public class Particle {
     public static final int STATE_ALIVE = 0;    // particle is alive
     public static final int STATE_DEAD = 1;     // particle is dead
 
-    public static final int DEFAULT_LIFETIME    = 250;  // play with this
+    public static final int DEFAULT_LIFETIME    = 100;  // play with this
     public static final int MAX_DIMENSION       = 5;    // the maximum width or height
     public static final int MAX_SPEED           = 10;   // maximum speed (per update)
 
