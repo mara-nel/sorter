@@ -10,7 +10,21 @@
     tools:context="com.learnknots.wesslnelson.Sorter.MainActivity">
 
     <TextView
+        android:id="@+id/launchingText"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Hello World!" />
+        android:layout_centerHorizontal="true"
+        android:text="Welcome to the home"
+        android:layout_above="@+id/start"/>
+
+    <Button
+        android:id="@id/start"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Game"
+        android:layout_centerHorizontal="true"
+        android:layout_centerVertical="true" />
+
+
+
 </RelativeLayout>
