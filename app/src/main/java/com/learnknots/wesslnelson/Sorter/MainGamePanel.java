@@ -194,10 +194,10 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
         nextRespawn = NEW_SORTEE_TIME - rndInt(0,1500);
         if (time > newSorteeTicker + nextRespawn) {
             newSorteeTicker = time;
-            sortees.add( new Sortee(BitmapFactory.decodeResource(getResources(), R.drawable.dog_both),
+            sortees.add( new Sortee(BitmapFactory.decodeResource(getResources(), R.drawable.moniter),
                     rndInt(0,500), rndInt(0,400),  // initial position
                     25, 20,  // width and height of sprite
-                    5, 2,    // FPS and number of frames in the animation
+                    5, 3,    // FPS and number of frames in the animation
                     this.getRight() - SAFE_ZONE_WIDTH, System.currentTimeMillis()));   // Where the safe zone starts and when sortee created
         }
     }
