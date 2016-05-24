@@ -50,6 +50,7 @@ public class MainThread extends Thread {
             try {
                 canvas = this.surfaceHolder.lockCanvas();
                 synchronized (surfaceHolder) {
+
                     beginTime = System.currentTimeMillis();
                     framesSkipped = 0;  // resetting the frames skipped
                     // update game state
@@ -93,5 +94,8 @@ public class MainThread extends Thread {
                 }
             } // end finally
         }
+
     }
+
+
 }

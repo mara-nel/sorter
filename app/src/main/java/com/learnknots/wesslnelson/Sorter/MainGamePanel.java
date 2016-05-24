@@ -30,14 +30,15 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
 
     Resources res = getResources();
 
-    private static final    String TAG = MainGamePanel.class.getSimpleName();
-    private final int       SAFE_ZONE_WIDTH = res.getInteger(R.integer.safeZone);
-    private final int       NEW_SORTEE_TIME = res.getInteger(R.integer.timeBetweenRespawn);
+    private static final String TAG = MainGamePanel.class.getSimpleName();
+    private final int SAFE_ZONE_WIDTH = res.getInteger(R.integer.safeZone);
+    private final int NEW_SORTEE_TIME = res.getInteger(R.integer.timeBetweenRespawn);
 
     private long newSorteeTicker = 0;
     private String safeZoneTest;
     private String numberOfSortees;
     private int nextRespawn;
+    private boolean mGameIsRunning;
 
     private MainThread thread;
     private List<Sortee> sortees;
@@ -48,16 +49,12 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
         // adding the callback (this) to the surface holder to intercept events
         getHolder().addCallback(this);
 
-        // create droid and load bitmap
-        //sortee = new Sortee(BitmapFactory.decodeResource(getResources(), R.drawable.droid_1), 50, 50);
-        //sortee2 =  new Sortee(BitmapFactory.decodeResource(getResources(), R.drawable.droid_1), 100, 100);
 
         sortees = new ArrayList<Sortee>();
         numberOfSortees = Integer.toString(sortees.size());
 
-
         // create the main game loop thread
-        thread = new MainThread(getHolder(), this);
+        //thread = new MainThread(getHolder(), this);
 
         // make the GamePanel focusable so it can handle events
         setFocusable(true);
@@ -71,6 +68,9 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
+        // create the main game loop thread
+        thread = new MainThread(getHolder(), this);
+
         thread.setRunning(true);
         thread.start();
     }
@@ -80,14 +80,20 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
         Log.d(TAG, "Surface is being destroyed");
         boolean retry = true;
         while (retry) {
-            try{
+            try {
                 thread.join();
                 retry = false;
-            } catch (InterruptedException e){
+            } catch (InterruptedException e) {
                 // try again shutting down the thread®
             }
         }
         Log.d(TAG, "Thread was shut down cleanly");
+        Log.d(TAG, "Returning to home screen");
+    }
+
+    public void endIt() {
+        thread.setRunning(false);
+        ((Activity) getContext()).finish();
     }
 
     @Override
@@ -95,30 +101,30 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
         if (event.getAction() == MotionEvent.ACTION_DOWN) {
             // delegating event handling to the droid
             //sortee.handleActionDown((int)event.getX(), (int)event.getY());
-            for (Sortee sortee:sortees) {
-                sortee.handleActionDown((int)event.getX(), (int)event.getY());
+            for (Sortee sortee : sortees) {
+                sortee.handleActionDown((int) event.getX(), (int) event.getY());
             }
 
             // check if in lower part of screen to see if exit
             if (event.getY() > getHeight() - 50) {
-                thread.setRunning(false);
-                ((Activity)getContext()).finish();
+                endIt();
             } else {
                 Log.d(TAG, "Coords: x=" + event.getX() + ",y=" + event.getY());
             }
         }
         if (event.getAction() == MotionEvent.ACTION_MOVE) {
             // the gestures
-            for (Sortee sortee:sortees) {
+            for (Sortee sortee : sortees) {
                 if (sortee.isTouched()) {
                     // the droid was picked up and is being dragged
                     sortee.setX((int) event.getX());
                     sortee.setY((int) event.getY());
                 }
             }
-        } if (event.getAction() == MotionEvent.ACTION_UP) {
+        }
+        if (event.getAction() == MotionEvent.ACTION_UP) {
             // touch was released
-            for (Sortee sortee:sortees) {
+            for (Sortee sortee : sortees) {
                 if (sortee.isTouched()) {
                     sortee.setTouched(false);
                 }
@@ -129,15 +135,12 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
 
 
     protected void render(Canvas canvas) {
+
         // fills the canvas with black
         canvas.drawColor(Color.CYAN);
         drawSafeLine(canvas, this.getWidth() - SAFE_ZONE_WIDTH);
-
-        //sortee.draw(canvas);
-        //sortee2.draw(canvas);
-
         // draw all sortees in list
-        for( Sortee sortee: sortees) {
+        for (Sortee sortee : sortees) {
             sortee.draw(canvas);
         }
         displayText(canvas, safeZoneTest, 20);
@@ -173,7 +176,7 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
 
         // will eventually check if sortee has been unsorted for too long
         List<Sortee> toRemove = new ArrayList<Sortee>();
-        for ( Sortee sortee: sortees) {
+        for (Sortee sortee : sortees) {
             sortee.update(System.currentTimeMillis());
             if (sortee.isSafe()) {
                 safeZoneTest = "A sortee has been sorted";
@@ -191,11 +194,11 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
 
 
     public void randomNewSortee(Long time) {
-        nextRespawn = NEW_SORTEE_TIME - rndInt(0,1500);
+        nextRespawn = NEW_SORTEE_TIME - rndInt(0, 1500);
         if (time > newSorteeTicker + nextRespawn) {
             newSorteeTicker = time;
-            sortees.add( new Sortee(BitmapFactory.decodeResource(getResources(), R.drawable.moniter),
-                    rndInt(0,500), rndInt(0,400),  // initial position
+            sortees.add(new Sortee(BitmapFactory.decodeResource(getResources(), R.drawable.moniter),
+                    rndInt(0, 500), rndInt(0, 400),  // initial position
                     25, 20,  // width and height of sprite
                     5, 3,    // FPS and number of frames in the animation
                     this.getRight() - SAFE_ZONE_WIDTH, System.currentTimeMillis()));   // Where the safe zone starts and when sortee created
@@ -206,4 +209,8 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
     static int rndInt(int min, int max) {
         return (int) (min + Math.random() * (max - min + 1));
     }
+
+
+
 }
+
