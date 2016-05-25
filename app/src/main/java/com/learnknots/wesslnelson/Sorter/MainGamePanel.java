@@ -33,6 +33,8 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
     private static final String TAG = MainGamePanel.class.getSimpleName();
     private final int SAFE_ZONE_WIDTH = res.getInteger(R.integer.safeZone);
     private final int NEW_SORTEE_TIME = res.getInteger(R.integer.timeBetweenRespawn);
+    public static final int LEFT = 0;
+    public static final int RIGHT = 1;
 
     private long newSorteeTicker = 0;
     private String safeZoneTest;
@@ -42,6 +44,7 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
 
     private MainThread thread;
     private List<Sortee> sortees;
+    private int safeSide;
 
 
     public MainGamePanel(Context context) {
@@ -137,8 +140,9 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
     protected void render(Canvas canvas) {
 
         // fills the canvas with black
-        canvas.drawColor(Color.CYAN);
+        canvas.drawColor(Color.BLACK);
         drawSafeLine(canvas, this.getWidth() - SAFE_ZONE_WIDTH);
+        drawSafeLine(canvas, SAFE_ZONE_WIDTH);
         // draw all sortees in list
         for (Sortee sortee : sortees) {
             sortee.draw(canvas);
@@ -151,8 +155,8 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
     private void drawSafeLine(Canvas canvas, int safeZone) {
         if (canvas != null) {
             Paint paint = new Paint();
-            paint.setARGB(255, 0, 50, 0);
-            //canvas.drawLine(600, 0, canvas.getWidth(), safeZone, paint);
+            paint.setARGB(255, 255, 255, 255);
+
             canvas.drawLine(safeZone, 0, safeZone, canvas.getHeight(), paint);
         }
     }
@@ -161,7 +165,7 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
     private void displayText(Canvas canvas, String text, int yHeight) {
         if (canvas != null && text != null) {
             Paint paint = new Paint();
-            paint.setARGB(255, 0, 0, 0);
+            paint.setARGB(255, 255, 255, 255);
             canvas.drawText(text, this.getWidth() - 150, yHeight, paint);
         }
     }
@@ -197,11 +201,8 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
         nextRespawn = NEW_SORTEE_TIME - rndInt(0, 1500);
         if (time > newSorteeTicker + nextRespawn) {
             newSorteeTicker = time;
-            sortees.add(new Sortee(BitmapFactory.decodeResource(getResources(), R.drawable.moniter),
-                    rndInt(0, 500), rndInt(0, 400),  // initial position
-                    25, 20,  // width and height of sprite
-                    5, 3,    // FPS and number of frames in the animation
-                    this.getRight() - SAFE_ZONE_WIDTH, System.currentTimeMillis()));   // Where the safe zone starts and when sortee created
+            newSortee();
+
         }
     }
 
@@ -210,7 +211,28 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
         return (int) (min + Math.random() * (max - min + 1));
     }
 
+    public void newSortee() {
+        safeSide = rndInt(0,1);
+        if ( safeSide == LEFT) {
+            sortees.add(new Sortee(BitmapFactory.decodeResource(getResources(), R.drawable.moniter2),
+                    rndInt(SAFE_ZONE_WIDTH + 25, this.getRight() - SAFE_ZONE_WIDTH - 25), rndInt(0, 400),  // initial position
+                    32, 32,  // width and height of sprite
+                    5, 2,    // FPS and number of frames in the animation
+                    SAFE_ZONE_WIDTH, this.getRight() - SAFE_ZONE_WIDTH, // Where the left and right sort zones are
+                    System.currentTimeMillis(), safeSide));  // when sortee created and which sort zone is the safe
 
+
+        } else if ( safeSide == RIGHT) {
+            sortees.add(new Sortee(BitmapFactory.decodeResource(getResources(), R.drawable.moniter),
+                    rndInt(SAFE_ZONE_WIDTH + 25, this.getRight() - SAFE_ZONE_WIDTH - 25), rndInt(0, 400),  // initial position
+                    32, 32,  // width and height of sprite
+                    5, 3,    // FPS and number of frames in the animation
+                    SAFE_ZONE_WIDTH, this.getRight() - SAFE_ZONE_WIDTH, // Where the left and right sort zones are
+                    System.currentTimeMillis(), safeSide));  // when sortee created and which sort zone is the safe
+        }
+
+
+    }
 
 }
 

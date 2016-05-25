@@ -8,6 +8,7 @@ import android.graphics.Rect;
 import android.renderscript.Long2;
 import android.util.Log;
 
+import com.learnknots.wesslnelson.Sorter.MainGamePanel;
 import com.learnknots.wesslnelson.Sorter.R;
 
 
@@ -39,6 +40,9 @@ public class Sortee {
     public static final int STATE_UNSAFE        = 1;    // sortee is not safe
     public static final int STATE_ALIVE         = 0;    // sortee is alive
     public static final int STATE_DEAD          = 1;    // sortee is dead
+    public static final int LEFT                = MainGamePanel.LEFT;
+    public static final int RIGHT               = MainGamePanel.RIGHT;
+
 
     private Bitmap bitmap;           // the animation sequence
     private Rect sourceRect;         // the rectangle to be drawn from the animation bitmap
@@ -51,6 +55,9 @@ public class Sortee {
     private int ageState;            // whether or not a sortee is young or old
     private int safeState;           // whether or not a sortee is in a safezone
     private int lifeState;           // whether or not a sortee is all done
+    private int safeSide;            // which side is this sortee safe in
+    private int leftSortZone;        // the end of the left sort zone
+    private int rightSortZone;       // the start of the right sort zone
 
     private int spriteWidth;    // the width of the sprite to calculate the cut out rectangle
     private int spriteHeight;   // the height of the sprite
@@ -59,11 +66,10 @@ public class Sortee {
     private int y; // the y coordinate
     private boolean touched; // true if sortee is touched/picked up
 
-    private int safeZone; // x coordinate for which anything greater than is safe
-
     private Explosion explosion; // if dies outside of safezone then it explodes
 
-    public Sortee(Bitmap bitmap, int x, int y, int width, int height, int fps, int frameCount, int safeZone, long startTime) {
+    public Sortee(Bitmap bitmap, int x, int y, int width, int height, int fps,
+                  int frameCount, int leftSortZone, int rightSortZone, long startTime, int safeSide) {
         this.bitmap = bitmap;
         this.x = x;
         this.y = y;
@@ -74,12 +80,16 @@ public class Sortee {
         sourceRect = new Rect(0, 0, spriteWidth, spriteHeight);
         framePeriod = 1000 / fps;
         frameTicker = 0l;
-        this.safeZone = safeZone;
+        this.leftSortZone = leftSortZone;
+        this.rightSortZone = rightSortZone;
         this.timeEnteringUnsafe = startTime;
         this.ageState = STATE_YOUNG;
         this.safeState = STATE_UNSAFE;
         this.timeEnteringSafe = -1;
         this.lifeState = STATE_ALIVE;
+        this.safeSide = safeSide;
+
+
     }
 
     public Bitmap getBitmap() {
@@ -152,11 +162,29 @@ public class Sortee {
         this.spriteHeight = spriteHeight;
     }
 
+    public int getLeftSortZone() { return leftSortZone; }
+    public int getRightSortZone() { return rightSortZone; }
+
+    // returns the x-coordinate marking start/end of correct sort zone
     public int getSafeZone() {
-        return safeZone;
+        if (getSafeSide() == LEFT) {
+            return getLeftSortZone();
+        } else if (getSafeSide() == RIGHT) {
+            return getRightSortZone();
+        }
+        // should never return this
+        return -1;
     }
-    public void setSafeZone( int safeZone) {
-        this.safeZone = safeZone;
+
+    // returns the x-coordinate marking start/end of wrong sort zone
+    public int getDangerZone() {
+        if (getSafeSide() == MainGamePanel.LEFT) {
+            return getRightSortZone();
+        } else if (getSafeSide() == MainGamePanel.RIGHT) {
+            return getLeftSortZone();
+        }
+        // should never return this
+        return -1;
     }
 
     public long getTimeEnteringSafe() {
@@ -194,6 +222,9 @@ public class Sortee {
         this.lifeState = state;
     }
 
+    public int getSafeSide() { return safeSide; }
+    public void setSafeSide(int side) { this.safeSide = side; }
+
 
     // helper methods -------------------------
     public boolean isYoung() {
@@ -214,6 +245,8 @@ public class Sortee {
     public boolean isDead() {
         return this.lifeState == STATE_DEAD;
     }
+    public boolean leftSideSafe() { return this.safeSide == LEFT; }
+    public boolean rightSideSafe() { return this.safeSide == RIGHT; }
 
     public boolean tooOldForSafe(Long gameTime) {
         return (gameTime - this.timeEnteringSafe >= LIFE_SPAN_SAFE);
@@ -224,7 +257,7 @@ public class Sortee {
 
     public void update(long gameTime) {
         if (isAlive()) {
-            if (isYoung()) {
+            if (isYoung() && !inDanger()) {
                 // handles animating the sprite
                 if (gameTime > frameTicker + framePeriod) {
                     frameTicker = gameTime;
@@ -238,18 +271,8 @@ public class Sortee {
                 this.sourceRect.left = currentFrame * spriteWidth;
                 this.sourceRect.right = this.sourceRect.left + spriteWidth;
 
-                // checks if in safe zone
-                if (isUnsafe()) {
-                    if (getX() > getSafeZone()) {
-                        setTimeEnteringSafe(gameTime);
-                        setSafeState(STATE_SAFE);
-                    }
-                } else if (isSafe()) {
-                    if (getX() <= getSafeZone()) {
-                        setTimeEnteringUnsafe(gameTime);
-                        setSafeState(STATE_UNSAFE);
-                    }
-                }
+
+                checkSafe(gameTime);
 
                 // checks if too old
                 if (isUnsafe()) {
@@ -263,7 +286,7 @@ public class Sortee {
                 }
 
 
-            } else if (isUnsafe()) {
+            } else if (isUnsafe() || inDanger()) {
                 runExplosion();
             } else if (isSafe()) {
                 fadeOut();
@@ -273,9 +296,15 @@ public class Sortee {
 
     public void draw(Canvas canvas) {
         // where to draw the sprite
-        if (isYoung()) {
+        if (isYoung()  && !inDanger()) {
             Rect destRect = new Rect(getX(), getY(), getX() + spriteWidth, getY() + spriteHeight);
             canvas.drawBitmap(bitmap, sourceRect, destRect, null);
+
+            if (inDanger() && explosion != null) {
+                explosion.setX(getX());
+                explosion.setY(getY());
+                explosion.draw(canvas);
+            }
 
         } else if (isUnsafe() && explosion != null) { // blow up old unsafe
             explosion.setX(getX());
@@ -323,5 +352,50 @@ public class Sortee {
 
     }
 
+    public void checkSafe(long gameTime) {
+        // checks if in safe zone
+        if (isUnsafe()) {
+            if(leftSideSafe()) {
+                if (getX() < getSafeZone()) {
+                    setTimeEnteringSafe(gameTime);
+                    setSafeState(STATE_SAFE);
+                }
+            } else if (rightSideSafe()){
+                if (getX() > getSafeZone()) {
+                    setTimeEnteringSafe(gameTime);
+                    setSafeState(STATE_SAFE);
+                }
+            }
 
+        } else if (isSafe()) { // checks to see if it moved out of the safe zone
+            if( leftSideSafe() ) {
+                if (getX() >= getSafeZone()) {
+                    setTimeEnteringUnsafe(gameTime);
+                    setSafeState(STATE_UNSAFE);
+                }
+
+            } else if ( rightSideSafe() ) {
+                if (getX() <= getSafeZone()) {
+                    setTimeEnteringUnsafe(gameTime);
+                    setSafeState(STATE_UNSAFE);
+                }
+            }
+
+        }
+    }
+    public boolean inDanger() {
+        if(leftSideSafe()) {
+            if(getX() > getDangerZone()) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            if(getX() < getDangerZone()) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
 }
