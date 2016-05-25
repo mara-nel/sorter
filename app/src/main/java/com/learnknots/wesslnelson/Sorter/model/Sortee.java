@@ -40,6 +40,8 @@ public class Sortee {
     public static final int STATE_UNSAFE        = 1;    // sortee is not safe
     public static final int STATE_ALIVE         = 0;    // sortee is alive
     public static final int STATE_DEAD          = 1;    // sortee is dead
+    public static final int LEFT                = MainGamePanel.LEFT;
+    public static final int RIGHT               = MainGamePanel.RIGHT;
 
 
     private Bitmap bitmap;           // the animation sequence
@@ -165,9 +167,9 @@ public class Sortee {
 
     // returns the x-coordinate marking start/end of correct sort zone
     public int getSafeZone() {
-        if (getSafeSide() == MainGamePanel.LEFT) {
+        if (getSafeSide() == LEFT) {
             return getLeftSortZone();
-        } else if (getSafeSide() == MainGamePanel.RIGHT) {
+        } else if (getSafeSide() == RIGHT) {
             return getRightSortZone();
         }
         // should never return this
@@ -243,6 +245,8 @@ public class Sortee {
     public boolean isDead() {
         return this.lifeState == STATE_DEAD;
     }
+    public boolean leftSideSafe() { return this.safeSide == LEFT; }
+    public boolean rightSideSafe() { return this.safeSide == RIGHT; }
 
     public boolean tooOldForSafe(Long gameTime) {
         return (gameTime - this.timeEnteringSafe >= LIFE_SPAN_SAFE);
@@ -253,7 +257,7 @@ public class Sortee {
 
     public void update(long gameTime) {
         if (isAlive()) {
-            if (isYoung()) {
+            if (isYoung() && !inDanger()) {
                 // handles animating the sprite
                 if (gameTime > frameTicker + framePeriod) {
                     frameTicker = gameTime;
@@ -269,10 +273,6 @@ public class Sortee {
 
 
                 checkSafe(gameTime);
-                if (inDanger()) {
-                    runExplosion();
-
-                }
 
                 // checks if too old
                 if (isUnsafe()) {
@@ -286,7 +286,7 @@ public class Sortee {
                 }
 
 
-            } else if (isUnsafe()) {
+            } else if (isUnsafe() || inDanger()) {
                 runExplosion();
             } else if (isSafe()) {
                 fadeOut();
@@ -296,7 +296,7 @@ public class Sortee {
 
     public void draw(Canvas canvas) {
         // where to draw the sprite
-        if (isYoung()) {
+        if (isYoung()  && !inDanger()) {
             Rect destRect = new Rect(getX(), getY(), getX() + spriteWidth, getY() + spriteHeight);
             canvas.drawBitmap(bitmap, sourceRect, destRect, null);
 
@@ -355,26 +355,26 @@ public class Sortee {
     public void checkSafe(long gameTime) {
         // checks if in safe zone
         if (isUnsafe()) {
-            if(getSafeSide() == MainGamePanel.LEFT ) {
+            if(leftSideSafe()) {
                 if (getX() < getSafeZone()) {
                     setTimeEnteringSafe(gameTime);
                     setSafeState(STATE_SAFE);
                 }
-            } else if (getSafeSide() == MainGamePanel.RIGHT ){
+            } else if (rightSideSafe()){
                 if (getX() > getSafeZone()) {
                     setTimeEnteringSafe(gameTime);
                     setSafeState(STATE_SAFE);
                 }
             }
 
-        } else if (isSafe()) {
-            if(getSafeSide() == MainGamePanel.LEFT ) {
+        } else if (isSafe()) { // checks to see if it moved out of the safe zone
+            if( leftSideSafe() ) {
                 if (getX() >= getSafeZone()) {
                     setTimeEnteringUnsafe(gameTime);
                     setSafeState(STATE_UNSAFE);
                 }
 
-            } else if (getSafeSide() == MainGamePanel.RIGHT ) {
+            } else if ( rightSideSafe() ) {
                 if (getX() <= getSafeZone()) {
                     setTimeEnteringUnsafe(gameTime);
                     setSafeState(STATE_UNSAFE);
@@ -384,7 +384,7 @@ public class Sortee {
         }
     }
     public boolean inDanger() {
-        if(getSafeSide() == MainGamePanel.LEFT ) {
+        if(leftSideSafe()) {
             if(getX() > getDangerZone()) {
                 return true;
             } else {
