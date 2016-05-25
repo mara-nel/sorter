@@ -14,6 +14,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
+import android.graphics.Rect;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
@@ -45,6 +46,7 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
     private MainThread thread;
     private List<Sortee> sortees;
     private int safeSide;
+    public static int score;
 
 
     public MainGamePanel(Context context) {
@@ -63,6 +65,8 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
         setFocusable(true);
 
         safeZoneTest = "no one is in it";
+
+        score = 0;
     }
 
     @Override
@@ -109,7 +113,7 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
             }
 
             // check if in lower part of screen to see if exit
-            if (event.getY() > getHeight() - 50) {
+            if (event.getX() > getWidth() - 50 && event.getY() < 50) {
                 endIt();
             } else {
                 Log.d(TAG, "Coords: x=" + event.getX() + ",y=" + event.getY());
@@ -141,6 +145,10 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
 
         // fills the canvas with black
         canvas.drawColor(Color.BLACK);
+        Rect sourceRect = new Rect(0,0,50,50);
+        Rect destRect = new Rect(getWidth()-50, 0, getWidth(), 50);
+        canvas.drawBitmap(BitmapFactory.decodeResource(getResources(), R.drawable.exit_smaller), sourceRect, destRect, null);
+
         drawSafeLine(canvas, this.getWidth() - SAFE_ZONE_WIDTH);
         drawSafeLine(canvas, SAFE_ZONE_WIDTH);
         // draw all sortees in list
@@ -149,6 +157,7 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
         }
         displayText(canvas, safeZoneTest, 20);
         displayText(canvas, numberOfSortees, 40);
+        displayText(canvas, Integer.toString(score), 60);
 
     }
 
@@ -186,6 +195,9 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
                 safeZoneTest = "A sortee has been sorted";
             }
             if (sortee.isDead()) {
+                if (sortee.isSafe()) {
+                    score += 1;
+                }
                 toRemove.add(sortee);
             }
         }
