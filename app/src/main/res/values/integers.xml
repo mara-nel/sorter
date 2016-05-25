@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <integer name="safeZone">200</integer>
+    <integer name="safeZone">150</integer>
     <integer name="timeBetweenRespawn">2000</integer>
 </resources>

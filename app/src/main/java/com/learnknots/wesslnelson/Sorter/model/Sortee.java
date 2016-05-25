@@ -8,6 +8,7 @@ import android.graphics.Rect;
 import android.renderscript.Long2;
 import android.util.Log;
 
+import com.learnknots.wesslnelson.Sorter.MainGamePanel;
 import com.learnknots.wesslnelson.Sorter.R;
 
 
@@ -40,6 +41,7 @@ public class Sortee {
     public static final int STATE_ALIVE         = 0;    // sortee is alive
     public static final int STATE_DEAD          = 1;    // sortee is dead
 
+
     private Bitmap bitmap;           // the animation sequence
     private Rect sourceRect;         // the rectangle to be drawn from the animation bitmap
     private int frameNr;             // number of frames in animation
@@ -51,6 +53,7 @@ public class Sortee {
     private int ageState;            // whether or not a sortee is young or old
     private int safeState;           // whether or not a sortee is in a safezone
     private int lifeState;           // whether or not a sortee is all done
+    private int safeSide;            // which side is this sortee safe in
 
     private int spriteWidth;    // the width of the sprite to calculate the cut out rectangle
     private int spriteHeight;   // the height of the sprite
@@ -63,7 +66,8 @@ public class Sortee {
 
     private Explosion explosion; // if dies outside of safezone then it explodes
 
-    public Sortee(Bitmap bitmap, int x, int y, int width, int height, int fps, int frameCount, int safeZone, long startTime) {
+    public Sortee(Bitmap bitmap, int x, int y, int width, int height, int fps,
+                  int frameCount, int safeZone, long startTime, int safeSide) {
         this.bitmap = bitmap;
         this.x = x;
         this.y = y;
@@ -80,6 +84,7 @@ public class Sortee {
         this.safeState = STATE_UNSAFE;
         this.timeEnteringSafe = -1;
         this.lifeState = STATE_ALIVE;
+        this.safeSide = safeSide;
     }
 
     public Bitmap getBitmap() {
@@ -194,6 +199,9 @@ public class Sortee {
         this.lifeState = state;
     }
 
+    public int getSafeSide() { return safeSide; }
+    public void setSafeSide(int side) { this.safeSide = side; }
+
 
     // helper methods -------------------------
     public boolean isYoung() {
@@ -238,18 +246,9 @@ public class Sortee {
                 this.sourceRect.left = currentFrame * spriteWidth;
                 this.sourceRect.right = this.sourceRect.left + spriteWidth;
 
-                // checks if in safe zone
-                if (isUnsafe()) {
-                    if (getX() > getSafeZone()) {
-                        setTimeEnteringSafe(gameTime);
-                        setSafeState(STATE_SAFE);
-                    }
-                } else if (isSafe()) {
-                    if (getX() <= getSafeZone()) {
-                        setTimeEnteringUnsafe(gameTime);
-                        setSafeState(STATE_UNSAFE);
-                    }
-                }
+
+                checkSafe(gameTime);
+
 
                 // checks if too old
                 if (isUnsafe()) {
@@ -323,5 +322,35 @@ public class Sortee {
 
     }
 
+    public void checkSafe(long gameTime) {
+        // checks if in safe zone
+        if (isUnsafe()) {
+            if(getSafeSide() == MainGamePanel.LEFT ) {
+                if (getX() < getSafeZone()) {
+                    setTimeEnteringSafe(gameTime);
+                    setSafeState(STATE_SAFE);
+                }
+            } else if (getSafeSide() == MainGamePanel.RIGHT ){
+                if (getX() > getSafeZone()) {
+                    setTimeEnteringSafe(gameTime);
+                    setSafeState(STATE_SAFE);
+                }
+            }
 
+        } else if (isSafe()) {
+            if(getSafeSide() == MainGamePanel.LEFT ) {
+                if (getX() >= getSafeZone()) {
+                    setTimeEnteringUnsafe(gameTime);
+                    setSafeState(STATE_UNSAFE);
+                }
+
+            } else if (getSafeSide() == MainGamePanel.RIGHT ) {
+                if (getX() <= getSafeZone()) {
+                    setTimeEnteringUnsafe(gameTime);
+                    setSafeState(STATE_UNSAFE);
+                }
+            }
+
+        }
+    }
 }
