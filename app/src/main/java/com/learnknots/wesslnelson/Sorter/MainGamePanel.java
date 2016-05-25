@@ -218,8 +218,8 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
                     rndInt(SAFE_ZONE_WIDTH + 25, this.getRight() - SAFE_ZONE_WIDTH - 25), rndInt(0, 400),  // initial position
                     32, 32,  // width and height of sprite
                     5, 2,    // FPS and number of frames in the animation
-                    SAFE_ZONE_WIDTH, System.currentTimeMillis(), // Where the safe zone starts and when sortee created
-                    safeSide));  // which side the safe zone is on
+                    SAFE_ZONE_WIDTH, this.getRight() - SAFE_ZONE_WIDTH, // Where the left and right sort zones are
+                    System.currentTimeMillis(), safeSide));  // when sortee created and which sort zone is the safe
 
 
         } else if ( safeSide == RIGHT) {
@@ -227,8 +227,8 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
                     rndInt(SAFE_ZONE_WIDTH + 25, this.getRight() - SAFE_ZONE_WIDTH - 25), rndInt(0, 400),  // initial position
                     32, 32,  // width and height of sprite
                     5, 3,    // FPS and number of frames in the animation
-                    this.getRight() - SAFE_ZONE_WIDTH, System.currentTimeMillis(), // Where the safe zone starts and when sortee created
-                    safeSide));  // which side the safe zone is on
+                    SAFE_ZONE_WIDTH, this.getRight() - SAFE_ZONE_WIDTH, // Where the left and right sort zones are
+                    System.currentTimeMillis(), safeSide));  // when sortee created and which sort zone is the safe
         }
 
 

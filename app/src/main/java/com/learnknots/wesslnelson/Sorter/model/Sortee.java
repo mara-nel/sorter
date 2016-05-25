@@ -54,6 +54,8 @@ public class Sortee {
     private int safeState;           // whether or not a sortee is in a safezone
     private int lifeState;           // whether or not a sortee is all done
     private int safeSide;            // which side is this sortee safe in
+    private int leftSortZone;        // the end of the left sort zone
+    private int rightSortZone;       // the start of the right sort zone
 
     private int spriteWidth;    // the width of the sprite to calculate the cut out rectangle
     private int spriteHeight;   // the height of the sprite
@@ -62,12 +64,10 @@ public class Sortee {
     private int y; // the y coordinate
     private boolean touched; // true if sortee is touched/picked up
 
-    private int safeZone; // x coordinate for which anything greater than is safe
-
     private Explosion explosion; // if dies outside of safezone then it explodes
 
     public Sortee(Bitmap bitmap, int x, int y, int width, int height, int fps,
-                  int frameCount, int safeZone, long startTime, int safeSide) {
+                  int frameCount, int leftSortZone, int rightSortZone, long startTime, int safeSide) {
         this.bitmap = bitmap;
         this.x = x;
         this.y = y;
@@ -78,13 +78,16 @@ public class Sortee {
         sourceRect = new Rect(0, 0, spriteWidth, spriteHeight);
         framePeriod = 1000 / fps;
         frameTicker = 0l;
-        this.safeZone = safeZone;
+        this.leftSortZone = leftSortZone;
+        this.rightSortZone = rightSortZone;
         this.timeEnteringUnsafe = startTime;
         this.ageState = STATE_YOUNG;
         this.safeState = STATE_UNSAFE;
         this.timeEnteringSafe = -1;
         this.lifeState = STATE_ALIVE;
         this.safeSide = safeSide;
+
+
     }
 
     public Bitmap getBitmap() {
@@ -157,11 +160,29 @@ public class Sortee {
         this.spriteHeight = spriteHeight;
     }
 
+    public int getLeftSortZone() { return leftSortZone; }
+    public int getRightSortZone() { return rightSortZone; }
+
+    // returns the x-coordinate marking start/end of correct sort zone
     public int getSafeZone() {
-        return safeZone;
+        if (getSafeSide() == MainGamePanel.LEFT) {
+            return getLeftSortZone();
+        } else if (getSafeSide() == MainGamePanel.RIGHT) {
+            return getRightSortZone();
+        }
+        // should never return this
+        return -1;
     }
-    public void setSafeZone( int safeZone) {
-        this.safeZone = safeZone;
+
+    // returns the x-coordinate marking start/end of wrong sort zone
+    public int getDangerZone() {
+        if (getSafeSide() == MainGamePanel.LEFT) {
+            return getRightSortZone();
+        } else if (getSafeSide() == MainGamePanel.RIGHT) {
+            return getLeftSortZone();
+        }
+        // should never return this
+        return -1;
     }
 
     public long getTimeEnteringSafe() {
@@ -248,7 +269,10 @@ public class Sortee {
 
 
                 checkSafe(gameTime);
+                if (inDanger()) {
+                    runExplosion();
 
+                }
 
                 // checks if too old
                 if (isUnsafe()) {
@@ -275,6 +299,12 @@ public class Sortee {
         if (isYoung()) {
             Rect destRect = new Rect(getX(), getY(), getX() + spriteWidth, getY() + spriteHeight);
             canvas.drawBitmap(bitmap, sourceRect, destRect, null);
+
+            if (inDanger() && explosion != null) {
+                explosion.setX(getX());
+                explosion.setY(getY());
+                explosion.draw(canvas);
+            }
 
         } else if (isUnsafe() && explosion != null) { // blow up old unsafe
             explosion.setX(getX());
@@ -351,6 +381,21 @@ public class Sortee {
                 }
             }
 
+        }
+    }
+    public boolean inDanger() {
+        if(getSafeSide() == MainGamePanel.LEFT ) {
+            if(getX() > getDangerZone()) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            if(getX() < getDangerZone()) {
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 }
