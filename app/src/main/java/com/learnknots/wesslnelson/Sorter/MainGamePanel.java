@@ -196,6 +196,9 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
                 safeZoneTest = "A sortee has been sorted";
             }
             if (sortee.isDead()) {
+                if (sortee.isTouched()) {
+                    isCarrying = false;
+                }
                 toRemove.add(sortee);
             }
         }
