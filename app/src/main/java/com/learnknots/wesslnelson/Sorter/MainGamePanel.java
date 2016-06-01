@@ -165,8 +165,8 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
             sortee.draw(canvas);
         }
         displayText(canvas, safeZoneTest, 20);
-        displayText(canvas, numberOfSortees, 40);
         displayText(canvas, Integer.toString(score), 60);
+
 
     }
 
@@ -239,7 +239,7 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
         safeSide = rndInt(0,1);
         if ( safeSide == LEFT) {
             sortees.add(new Sortee(BitmapFactory.decodeResource(getResources(), R.drawable.moniter2),
-                    rndInt(SAFE_ZONE_WIDTH + 25, this.getRight() - SAFE_ZONE_WIDTH - 25), rndInt(0, 400),  // initial position
+                    rndInt(SAFE_ZONE_WIDTH + 25, this.getRight() - SAFE_ZONE_WIDTH - 50), rndInt(0, 400),  // initial position
                     32, 32,  // width and height of sprite
                     5, 2,    // FPS and number of frames in the animation
                     SAFE_ZONE_WIDTH, this.getRight() - SAFE_ZONE_WIDTH, // Where the left and right sort zones are
@@ -248,7 +248,7 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
 
         } else if ( safeSide == RIGHT) {
             sortees.add(new Sortee(BitmapFactory.decodeResource(getResources(), R.drawable.moniter),
-                    rndInt(SAFE_ZONE_WIDTH + 25, this.getRight() - SAFE_ZONE_WIDTH - 25), rndInt(0, 400),  // initial position
+                    rndInt(SAFE_ZONE_WIDTH + 25, this.getRight() - SAFE_ZONE_WIDTH - 50), rndInt(0, 400),  // initial position
                     32, 32,  // width and height of sprite
                     5, 3,    // FPS and number of frames in the animation
                     SAFE_ZONE_WIDTH, this.getRight() - SAFE_ZONE_WIDTH, // Where the left and right sort zones are
