@@ -167,9 +167,9 @@ public class Sortee {
 
     // returns the x-coordinate marking start/end of correct sort zone
     public int getSafeZone() {
-        if (getSafeSide() == LEFT) {
+        if (leftSideSafe()) {
             return getLeftSortZone();
-        } else if (getSafeSide() == RIGHT) {
+        } else if (rightSideSafe()) {
             return getRightSortZone();
         }
         // should never return this
@@ -178,9 +178,9 @@ public class Sortee {
 
     // returns the x-coordinate marking start/end of wrong sort zone
     public int getDangerZone() {
-        if (getSafeSide() == MainGamePanel.LEFT) {
+        if (leftSideSafe()) {
             return getRightSortZone();
-        } else if (getSafeSide() == MainGamePanel.RIGHT) {
+        } else if (rightSideSafe()) {
             return getLeftSortZone();
         }
         // should never return this
@@ -287,7 +287,7 @@ public class Sortee {
 
 
             } else if (isUnsafe() || inDanger()) {
-                runExplosion();
+                updateExplosion();
             } else if (isSafe()) {
                 fadeOut();
             }
@@ -301,15 +301,11 @@ public class Sortee {
             canvas.drawBitmap(bitmap, sourceRect, destRect, null);
 
             if (inDanger() && explosion != null) {
-                explosion.setX(getX());
-                explosion.setY(getY());
-                explosion.draw(canvas);
+                drawExplosion(canvas);
             }
 
         } else if (isUnsafe() && explosion != null) { // blow up old unsafe
-            explosion.setX(getX());
-            explosion.setY(getY());
-            explosion.draw(canvas);
+            drawExplosion(canvas);
 
         } else if (isSafe()) { // fade out old safe
             Rect destRect = new Rect(getX(), getY(), getX() + spriteWidth, getY() + spriteHeight);
@@ -330,7 +326,7 @@ public class Sortee {
         }
     }
 
-    public void runExplosion() {
+    public void updateExplosion() {
         if (explosion == null) {
             explosion = new Explosion(200, getX(), getY());
         } else {
@@ -340,6 +336,12 @@ public class Sortee {
                 setLifeState(STATE_DEAD);
             }
         }
+    }
+
+    public void drawExplosion(Canvas canvas) {
+        explosion.setX(getX());
+        explosion.setY(getY());
+        explosion.draw(canvas);
     }
 
     public void fadeOut() {
