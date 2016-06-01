@@ -48,6 +48,8 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
     private int safeSide;
     public static int score;
 
+    private boolean isCarrying;
+
 
     public MainGamePanel(Context context) {
         super(context);
@@ -65,7 +67,8 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
         setFocusable(true);
 
         safeZoneTest = "no one is in it";
-
+        
+        isCarrying = false;
         score = 0;
     }
 
@@ -109,7 +112,12 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
             // delegating event handling to the droid
             //sortee.handleActionDown((int)event.getX(), (int)event.getY());
             for (Sortee sortee : sortees) {
-                sortee.handleActionDown((int) event.getX(), (int) event.getY());
+                if (!isCarrying) {
+                    sortee.handleActionDown((int) event.getX(), (int) event.getY());
+                    if (sortee.isTouched()) {
+                        isCarrying = true;
+                    }
+                }
             }
 
             // check if in lower part of screen to see if exit
@@ -134,6 +142,7 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
             for (Sortee sortee : sortees) {
                 if (sortee.isTouched()) {
                     sortee.setTouched(false);
+                    isCarrying = false;
                 }
             }
         }
@@ -195,6 +204,9 @@ public class MainGamePanel extends SurfaceView implements SurfaceHolder.Callback
                 safeZoneTest = "A sortee has been sorted";
             }
             if (sortee.isDead()) {
+                if (sortee.isTouched()) {
+                    isCarrying = false;
+                }
                 if (sortee.isSafe()) {
                     score += 1;
                 }
