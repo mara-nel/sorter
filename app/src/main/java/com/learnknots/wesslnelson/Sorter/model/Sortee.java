@@ -314,8 +314,8 @@ public class Sortee {
     }
 
     public void handleActionDown(int eventX, int eventY) {
-        if (eventX >= (x - bitmap.getWidth() / 2) && (eventX <= (x + bitmap.getWidth() / 2))) {
-            if (eventY >= (y - bitmap.getHeight() / 2) && (y <= (y + bitmap.getHeight() / 2))) {
+        if (eventY >= (y) && (eventY <= (y + spriteHeight))) {
+            if (eventX >= (x) && (eventX <= (x + spriteWidth))) {
                 // sortee touched
                 setTouched(true);
             } else {
